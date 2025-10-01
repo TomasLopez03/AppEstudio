@@ -1,8 +1,9 @@
 import axios from 'axios'
 
+const API_URL = import.meta.env.VITE_API_URL;
 const employeeApi = axios.create(
     {
-        baseURL : 'http://localhost:8000/api/employees/'
+        baseURL : `${API_URL}/api/employees/`
     }
 )
 
@@ -16,7 +17,7 @@ export const deleteProduct = (id) => employeeApi.delete(`/${id}/`)
 
 const clientApi = axios.create(
     {
-        baseURL : 'http://localhost:8000/api/clients/'
+        baseURL : `${API_URL}/api/clients/`
     }
 )
 
@@ -29,7 +30,7 @@ export const deleteClient = (id) => clientApi.delete(`/${id}/`)
 
 const profileApi = axios.create(
     {
-        baseURL : 'http://localhost:8000/api/profile/'
+        baseURL : `${API_URL}/api/profile/`
     }
 )
 

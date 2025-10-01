@@ -13,14 +13,16 @@ export const AuthProvider = ({ children }) => {
     const handleLogin = async (credentials) => {
         try {
             const response = await login(credentials);
-            const { access, refresh } = response.data;
+            const { access, refresh, id, username, role } = response.data;
             setAccessToken(access);
             setRefreshTokenState(refresh);
             localStorage.setItem('accessToken', access);
             localStorage.setItem('refreshToken', refresh);
             // Puedes guardar datos de usuario si tu API los devuelve
-            // setUser(response.data.user);
-            return true;
+            const userData = { id, username, role };
+            setUser(userData);
+            
+            return userData;
         } catch (error) {
             return false;
         }
