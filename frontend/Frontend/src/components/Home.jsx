@@ -1,15 +1,16 @@
 import logoEmpresa from '../assets/images/logoEmpresa.jpeg';
-
+import { Navbar } from './NavBar';
 
 export const Home = () => {
     return (
         <>
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4 sm:p-8">
+            <Navbar userRole={'admin'} />
+            <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 sm:p-8">
                 <div className="w-full max-w-4xl text-center">
-                    <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent mt-12 bg-clip-text bg-gradient-to-r from-orange-500 to-red-500 mb-8 tracking-tight">
+                    <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent  bg-clip-text bg-gradient-to-r from-orange-500 to-red-500 mb-8 tracking-tight">
                         ¡Bienvenido!
                     </h1>
-                    <div className="w-full px-4 sm:px-10 lg:px-42 mb-12">
+                    <div className="w-full px-4 sm:px-10 lg:px-48 mb-12">
                         <img
                             src={logoEmpresa}
                             alt="Logo de la empresa - Estudio Contable Geria Reines 35 años de trayectoria"
