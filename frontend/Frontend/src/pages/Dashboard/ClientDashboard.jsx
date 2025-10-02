@@ -1,7 +1,9 @@
-import React from 'react'
+import { Home } from '../../components/Home.jsx'
 
 export const ClientDashboard = () => {
   return (
-    <div>ClientDashboard</div>
+    <>
+      <Home />
+    </>
   )
 }
