@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'apps.users',
     'apps.honorarios',
-    'apps.notifications'
+    'apps.notifications',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -160,6 +161,9 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
 }
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173'
-]
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:5173',
+#     'http://192.168.100.33:5173'
+# ]
+
+CORS_ALLOW_ALL_ORIGINS = True

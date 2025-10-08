@@ -1,2 +1,19 @@
-venv/
+# Archivos de entornos virtuales
+/venv/
 .env
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Archivos de Django
+*.log
+*.pot
+*.pyc
