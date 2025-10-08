@@ -5,9 +5,10 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     // Inicializa el estado con los valores de localStorage
+    const storedUser = localStorage.getItem('user');
     const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'));
     const [refreshTokenState, setRefreshTokenState] = useState(localStorage.getItem('refreshToken'));
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(storedUser ? JSON.parse(storedUser) : null);
 
     // Función para iniciar sesión
     const handleLogin = async (credentials) => {
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }) => {
             // Puedes guardar datos de usuario si tu API los devuelve
             const userData = { id, username, role };
             setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
             
             return userData;
         } catch (error) {
@@ -49,6 +51,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
     };
 
     return (

@@ -1,23 +1,39 @@
 import { BrowserRouter, Route, Routes } from "react-router"
+import { Toaster } from "react-hot-toast"
 import { Login } from "./pages/Auth/Login"
-import { AuthProvider } from "./auth/AuthContext.jsx"
+import { AuthProvider, AuthContext } from "./auth/AuthContext.jsx"
 import { AdminDashboard } from "./pages/Dashboard/AdminDashboard.jsx"
 import { EmployeeDashboard } from "./pages/Dashboard/EmployeeDashboard.jsx"
 import { ClientDashboard } from "./pages/Dashboard/ClientDashboard.jsx"
 import { Home } from "./components/Home.jsx"
+import { ProtectedRoute } from "./components/ProtectedRoute.jsx"
+import { useContext } from "react"
+
 
 function App() {
-
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/employee" element={<EmployeeDashboard />} />
-          <Route path="/client" element={<ClientDashboard />} />
-          <Route path="/" element={<Home />} />
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/employee" element={
+            <ProtectedRoute allowedRoles={['employee']}>
+              <EmployeeDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/client" element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/home" element={<Home />} />
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </AuthProvider>
   )
