@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, ChevronLeft, LogOut, Home, Users, Settings, User } from 'lucide-react';
 
 const closeSession = () => {
@@ -11,22 +12,22 @@ const closeSession = () => {
 // Define los enlaces para diferentes roles
 const getNavLinks = (role) => {
   const baseLinks = [
-    { name: 'Inicio', href: '#inicio', icon: Home },
+  { name: 'Inicio', href: '/home', icon: Home },
     { name: 'Mi Perfil', href: '#perfil', icon: User },
   ];
 
   if (role === 'admin') {
-    return [
+      return [
       ...baseLinks,
-      { name: 'Clientes', href: '#clientes', icon: Users },
-      { name: 'Operaciones', href: '#operaciones', icon: Settings },
+      { name: 'Clientes', href: '/clientes', icon: Users },
+      { name: 'Operaciones', href: '/operaciones', icon: Settings },
     ];
   }
   if (role === 'employee') {
     return [
       ...baseLinks,
-      { name: 'Clientes', href: '#clientes', icon: Users },
-      { name: 'Operaciones', href: '#operaciones', icon: Settings },
+      { name: 'Clientes', href: '/clientes', icon: Users },
+      { name: 'Operaciones', href: '/operaciones', icon: Settings },
     ]
   }
   // Enlaces para el rol 'Client' o cualquier otro rol por defecto
@@ -74,14 +75,25 @@ export const Navbar = ({ userRole }) => {
         {/* Lado Derecho: Navbar de Escritorio (Visible solo en Desktop) */}
         <nav className="hidden md:flex items-center space-x-6">
           {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-gray-700 font-medium hover:text-orange-600 transition-colors flex items-center space-x-2"
-            >
-              <link.icon size={18} />
-              <span>{link.name}</span>
-            </a>
+            link.href && link.href.startsWith('/') ? (
+              <Link
+                key={link.name}
+                to={link.href}
+                className="text-gray-700 font-medium hover:text-orange-600 transition-colors flex items-center space-x-2"
+              >
+                <link.icon size={18} />
+                <span>{link.name}</span>
+              </Link>
+            ) : (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-gray-700 font-medium hover:text-orange-600 transition-colors flex items-center space-x-2"
+              >
+                <link.icon size={18} />
+                <span>{link.name}</span>
+              </a>
+            )
           ))}
 
           {/* Botón de Cerrar Sesión en Desktop */}
@@ -129,15 +141,27 @@ export const Navbar = ({ userRole }) => {
 
             <nav className="flex flex-col space-y-2 text-base font-medium">
               {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={closeMenu}
-                  className="text-gray-700 hover:text-orange-600 p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-3"
-                >
-                  <link.icon size={20} className="text-orange-500" />
-                  <span>{link.name}</span>
-                </a>
+                link.href && link.href.startsWith('/') ? (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    onClick={closeMenu}
+                    className="text-gray-700 hover:text-orange-600 p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                  >
+                    <link.icon size={20} className="text-orange-500" />
+                    <span>{link.name}</span>
+                  </Link>
+                ) : (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={closeMenu}
+                    className="text-gray-700 hover:text-orange-600 p-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-3"
+                  >
+                    <link.icon size={20} className="text-orange-500" />
+                    <span>{link.name}</span>
+                  </a>
+                )
               ))}
             </nav>
           </div>
@@ -155,3 +179,5 @@ export const Navbar = ({ userRole }) => {
     </header>
   )
 }
+
+export default Navbar;

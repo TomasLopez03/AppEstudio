@@ -6,6 +6,8 @@ import { AdminDashboard } from "./pages/Dashboard/AdminDashboard.jsx"
 import { EmployeeDashboard } from "./pages/Dashboard/EmployeeDashboard.jsx"
 import { ClientDashboard } from "./pages/Dashboard/ClientDashboard.jsx"
 import { Home } from "./components/Home.jsx"
+import Operacion from "./components/Operacion.jsx"
+import { ListClient } from "./components/ListClient.jsx"
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx"
 import { useContext } from "react"
 
@@ -29,6 +31,16 @@ function App() {
           <Route path="/client" element={
             <ProtectedRoute allowedRoles={['client']}>
               <ClientDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/operaciones" element={
+            <ProtectedRoute allowedRoles={["admin","employee"]}>
+              <Operacion />
+            </ProtectedRoute>
+          } />
+          <Route path="/clientes" element={
+            <ProtectedRoute allowedRoles={["admin","employee"]}>
+              <ListClient />
             </ProtectedRoute>
           } />
           <Route path="/home" element={<Home />} />
