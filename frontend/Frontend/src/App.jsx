@@ -10,6 +10,12 @@ import Operacion from "./components/Operacion.jsx"
 import { ListClient } from "./components/ListClient.jsx"
 import { ProtectedRoute } from "./components/ProtectedRoute.jsx"
 import { useContext } from "react"
+import { HonorarioCarga } from "./components/HonorarioCarga.jsx"
+import { HonorariosList } from "./pages/Honorarios/HonorariosList.jsx"
+import { ListDocuments } from "./components/ListDocuments.jsx"
+import { Profile } from "./components/Profile.jsx"
+import { ListEmployee } from "./components/ListEmployee.jsx"
+import { PaymentList } from "./pages/Payments/PaymentList.jsx"
 
 
 function App() {
@@ -43,6 +49,37 @@ function App() {
               <ListClient />
             </ProtectedRoute>
           } />
+          < Route path="/honorarios" element={
+            <ProtectedRoute allowedRoles={["admin", "employee"]}>
+              <HonorarioCarga/>
+            </ProtectedRoute>
+          }/>
+          <Route path="/honorarios/listar" element={
+            <ProtectedRoute allowedRoles={['client', 'admin', 'employee']}>
+              <HonorariosList/>
+            </ProtectedRoute>
+          }/>
+          <Route path="/documentos" element={
+            <ProtectedRoute allowedRoles={['client', 'admin', 'employee']}>
+              <ListDocuments/>
+            </ProtectedRoute>
+          }/>
+          <Route path="/perfil" element={
+            <ProtectedRoute allowedRoles={['client', 'admin', 'employee']}>
+              <Profile />
+            </ProtectedRoute>
+          }/>
+          <Route path="/empleados" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ListEmployee />
+            </ProtectedRoute>
+          }/>
+          <Route path='/pagos' element={
+            <ProtectedRoute allowedRoles={['admin', 'employee', 'client']}>
+              <PaymentList />
+            </ProtectedRoute>
+          }/>
+
           <Route path="/home" element={<Home />} />
         </Routes>
         <Toaster />

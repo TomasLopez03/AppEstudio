@@ -20,7 +20,9 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from apps.users.urls import router as users_router
+import apps.users.urls  as users_urls
+import apps.honorarios.urls as honorarios_urls
+import apps.documentos.urls as documentos_urls
 from apps.users.views import ProfileViewSet
 from core.jwt import CustomTokenObtainPairView
 
@@ -29,7 +31,9 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/', include(users_router.urls), name='users'),
+    path('api/', include(users_urls), name='users'),
+    path('api/', include(honorarios_urls)),
+    path('api/', include(documentos_urls)),
     path('api/profile/', ProfileViewSet.as_view(), name='profile'),
 ]
 

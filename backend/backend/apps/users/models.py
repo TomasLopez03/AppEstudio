@@ -11,7 +11,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='client')
     email = models.EmailField(unique=True, null=False)
-    razon_social = models.CharField(max_length=100, null=True)
-    celular = models.IntegerField(null=True)
-    cuit = models.CharField(max_length=20, null=False, unique=True)
+    razon_social = models.CharField(max_length=100, null=True, unique=True)
+    celular = models.CharField(max_length=20, null=True)
+    cuit = models.CharField(max_length=20, null=True, unique=True)
 

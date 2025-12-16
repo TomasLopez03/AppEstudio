@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { login, refreshToken } from '../api/auth';
 
 export const AuthContext = createContext();
@@ -53,6 +53,24 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
     };
+
+    // Escuchar eventos globales disparados por los interceptores (auto-refresh / logout)
+    useEffect(() => {
+        const onTokenRefreshed = (e) => {
+            const newAccess = e?.detail?.access;
+            if (newAccess) setAccessToken(newAccess);
+        };
+        const onLogoutEvent = () => {
+            handleLogout();
+        };
+
+        window.addEventListener('auth:token_refreshed', onTokenRefreshed);
+        window.addEventListener('auth:logout', onLogoutEvent);
+        return () => {
+            window.removeEventListener('auth:token_refreshed', onTokenRefreshed);
+            window.removeEventListener('auth:logout', onLogoutEvent);
+        };
+    }, []);
 
     return (
         <AuthContext.Provider value={{

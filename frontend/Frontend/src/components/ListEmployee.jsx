@@ -1,145 +1,142 @@
-import React, { useState, useContext, useEffect } from 'react';
-// Iconos de Lucide-React para una mejor UI/UX
+import { useState, useContext, useEffect } from 'react'
 import { Plus, Edit, Trash2, ChevronDown, ChevronUp, X, Menu, Search, Loader2 } from 'lucide-react';
 import { Navbar } from './Navbar.jsx';
 import { AuthContext } from '../auth/AuthContext.jsx';
-
-import { getClients, getClientsByUrl, createClient, deleteClient, partialUpdateClient } from '../api/users.js';
 import { toast, Toaster } from 'react-hot-toast';
 
-export const ListClient = () => {
-    const { user, accessToken } = useContext(AuthContext);
-    const [clients, setClients] = useState([]);
+import { getEmployees, getEmployeesByUrl, createEmployees, partialUpdateEmployees } from '../api/users.js';
+import { InputField } from './ListClient.jsx'
+
+export const ListEmployee = () => {
+    const { user } = useContext(AuthContext);
+    const [employees, setEmployees] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Simulación de sidebar para la navegación
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [editingClient, setEditingClient] = useState(null);
-    const [expandedClient, setExpandedClient] = useState(null); // Para el modo mobile
+    const [editingEmployee, setEditingEmployee] = useState(null);
+    const [expandedEmployee, setExpandedEmployee] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [nextPage, setNextPage] = useState(null);
     const [previousPage, setPreviousPage] = useState(null);
     const [totalCount, setTotalCount] = useState(0);
-    const [newClient, setNewClient] = useState({
-        razon_social: '', cuit: '', celular: '', email: '', first_name: '', last_name: '', username: '', password: ''
+    const [newEmployee, setNewEmployee] = useState({
+        username: '', email: '', password: '', first_name: '', last_name: '', role: '', cuit: '',
+        celular: '',
     });
 
-    // Alternar la expansión de un cliente en vista móvil
+    // Alternar la expansión de un empleado en vista móvil
     const toggleExpand = (id) => {
-        setExpandedClient(expandedClient === id ? null : id);
+        setExpandedEmployee(expandedEmployee === id ? null : id);
     };
 
-    // Abre el modal para crear
+    //Abre modal para crear empleado
     const handleCreate = () => {
         setIsEditing(false);
-        setEditingClient(null);
-        setNewClient({
-            razon_social: '', cuit: '', celular: '', email: '', first_name: '', last_name: '', username: '', password: ''
+        setEditingEmployee(null);
+        setNewEmployee({
+            username: '', email: '', password: '', first_name: '', last_name: '', role: '', cuit: '',
+            celular: '',
         });
         setIsModalOpen(true);
-    };
+    }
 
     // Abre el modal para editar
-    const handleEdit = (client) => {
+    const handleEdit = (employee) => {
         setIsEditing(true);
-        setEditingClient(client);
-        setNewClient(client);
+        setEditingEmployee(employee);
+        setNewEmployee(employee);
         setIsModalOpen(true);
     };
 
-    // Guarda la creación o edición
     const handleSave = (e) => {
         e.preventDefault();
         setLoading(true);
         (async () => {
             try {
-                if (isEditing && editingClient && editingClient.id) {
-                    // use partial update when editing
-                    const resp = await partialUpdateClient(editingClient.id, newClient);
-                    // update local list with returned data if provided
+                if (isEditing && editingEmployee && editingEmployee.id) {
+                    // Actualizar empleado existente
+                    const resp = await partialUpdateEmployees(editingEmployee.id, newEmployee);
+                    // Actualizar la lista localmente
                     if (resp?.data?.id) {
-                        setClients(prev => prev.map(c => (c.id === resp.data.id ? resp.data : c)));
-                        toast.success('Cliente actualizado');
-                    } else {
-                        // fallback: reload list
-                        await loadClients();
-                        toast.success('Cliente actualizado');
+                        setEmployees(employees.map(emp => emp.id === resp.data.id ? resp.data : emp));
+                        toast.success('Empleado actualizado con éxito');
                     }
                 } else {
-                    const resp = await createClient(newClient);
-                    // After creating, refresh the current list (server may sort/paginate)
-                    await loadClients();
-                    toast.success('Cliente creado');
+                    // Crear nuevo empleado
+                    const resp = await createEmployees(newEmployee);
+                    // refrescar la lista
+                    await loadEmployees();
+                    toast.success('Empleado creado con éxito');
                 }
                 setIsModalOpen(false);
-            } catch (err) {
-                console.error('Error saving client', err);
-                toast.error('Error al guardar el cliente');
+            } catch (error) {
+                console.error('Error al guardar el empleado:', error);
+                toast.error('Error al guardar el empleado');
             } finally {
                 setLoading(false);
             }
         })();
-    };
+    }
 
-    // Eliminar cliente
-    const handleDelete = (id) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar este cliente?')) return;
+    //eliminar empleado
+    const handleDelete = async (id) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar este empleado?')) return;
         (async () => {
             try {
-                await partialUpdateClient(id, { is_active: false });
-                // refresh list after deletion
-                await loadClients();
-                toast.success('Cliente eliminado');
-            } catch (err) {
-                console.error('Error al eliminar al cliente', err);
-                toast.error('Error al eliminar el cliente');
+                await partialUpdateEmployees(id, { is_active: false });
+                //refrescar la lista
+                await loadEmployees();
+                toast.success('Empleado eliminado con éxito');
+            } catch (error) {
+                console.error('Error al eliminar el empleado:', error);
+                toast.error('Error al eliminar el empleado');
             }
         })();
-    };
+    }
 
-    // Load clients helper (initial or by URL)
-    const loadClients = async (url = null) => {
+    const loadEmployees = async (url = null) => {
         try {
             setFetching(true);
-            let res;
-            if (url) res = await getClientsByUrl(url);
-            else res = await getClients({ page_size: 5 });
-            const payload = res?.data ?? {};
-            const data = payload.results ?? [];
-            setClients(data);
-            setNextPage(payload.next ?? null);
-            setPreviousPage(payload.previous ?? null);
-            setTotalCount(payload.count ?? data.length);
-        } catch (err) {
-            console.error('Error fetching clients', err);
-            setClients([]);
+            let resp
+            if (url) resp = await getEmployeesByUrl(url);
+            else resp = await getEmployees({ page_size: 5 });
+            const payload = resp?.data ?? {};
+            const data = payload?.results ?? [];
+            setEmployees(data);
+            setNextPage(payload?.next || null);
+            setPreviousPage(payload?.previous || null);
+            setTotalCount(payload?.count ?? data.length);
+        } catch (error) {
+            console.error('Error al cargar los empleados:', error);
+            toast.error('Error al cargar los empleados');
+            setEmployees([]);
             setNextPage(null);
             setPreviousPage(null);
             setTotalCount(0);
         } finally {
             setFetching(false);
         }
-    };
+    }
 
     useEffect(() => {
         let mounted = true;
-        loadClients();
+        loadEmployees();
         return () => { mounted = false };
     }, []);
 
-    const fetchPage = async (url) => {
+    const fecthPage = async (url) => {
         if (!url) return;
-        await loadClients(url);
+        await loadEmployees(url);
     }
 
     // Mapea el booleano is_active a un texto legible
     const statusLabel = (isActive) => {
         // Normalizar distintos tipos (boolean, 'true'/'false', 1/0)
-        if (isActive === true || isActive === 'true' ) return 'activo';
+        if (isActive === true || isActive === 'true') return 'activo';
         return 'inactivo';
     };
 
-    // Badge visual para el estado activo/inactivo
     const StatusBadge = ({ isActive }) => {
         const active = (isActive === true || isActive === 'true' || isActive === 1 || isActive === '1');
         const colorClass = active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
@@ -151,24 +148,11 @@ export const ListClient = () => {
         );
     };
 
-
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
 
             <Navbar userRole={user?.role} />
             <Toaster position="top-right" />
-
-            {/* Sidebar (Mobile - Opcional, para simular navegación) */}
-            <div className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:hidden transition duration-300 ease-in-out bg-white w-64 z-20 shadow-xl p-4`}>
-                <div className="text-lg font-bold mb-4">Menú</div>
-                {/* Aquí irían los enlaces de navegación */}
-                <button className="w-full text-left py-2 px-4 rounded-lg hover:bg-gray-100">Dashboard</button>
-                <button className="w-full text-left py-2 px-4 rounded-lg hover:bg-gray-100 text-orange-600 font-semibold">Clientes</button>
-                <button className="w-full text-left py-2 px-4 rounded-lg hover:bg-gray-100">Reportes</button>
-            </div>
-            {/* Overlay para cerrar Sidebar */}
-            {isSidebarOpen && <div className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
-
 
             {/* 2. Contenido Principal */}
             <main className="flex-grow p-4 md:p-8">
@@ -191,7 +175,7 @@ export const ListClient = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                {['Razón Social', 'CUIT', 'Celular', 'Email', 'Nombre', 'Apellido', 'Estado', 'Acción'].map(header => (
+                                {['Nombre', 'Apellido', 'CUIT', 'Celular', 'Email', 'Estado', 'Acción'].map(header => (
                                     <th
                                         key={header}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -202,23 +186,22 @@ export const ListClient = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {clients.map((client) => (
-                                <tr key={client.id} className="hover:bg-gray-50 transition duration-150">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{client.razon_social}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.cuit}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.celular}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 truncate max-w-xs">{client.email}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.first_name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.last_name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StatusBadge isActive={client.is_active} /></td>
+                            {employees.map((employee) => (
+                                <tr key={employee.id} className="hover:bg-gray-50 transition duration-150">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.first_name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.last_name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.cuit}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{employee.celular}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 truncate max-w-xs">{employee.email}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><StatusBadge isActive={employee.is_active} /></td>
 
 
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div className="flex items-center space-x-3">
-                                            <button onClick={() => handleEdit(client)} className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50 transition">
+                                            <button onClick={() => handleEdit(employee)} className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50 transition">
                                                 <Edit className="w-5 h-5" />
                                             </button>
-                                            <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50 transition">
+                                            <button onClick={() => handleDelete(employee.id)} className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-50 transition">
                                                 <Trash2 className="w-5 h-5" />
                                             </button>
                                         </div>
@@ -233,18 +216,18 @@ export const ListClient = () => {
                 {/* MOBILE VIEW (Lista expansible - inspirado en la imagen) */}
                 {/* ------------------------------------- */}
                 <div className="lg:hidden space-y-3">
-                    {clients.map((client) => (
-                        <div key={client.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                    {employees.map((employee) => (
+                        <div key={employee.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
                             {/* Encabezado visible siempre (Nombre/Razón Social y Toggle) */}
                             <div
                                 className="p-4 flex justify-between items-center cursor-pointer transition duration-150 hover:bg-gray-50"
-                                onClick={() => toggleExpand(client.id)}
+                                onClick={() => toggleExpand(employee.id)}
                             >
                                 <div className="text-base font-semibold text-gray-800 truncate">
                                     {/* El título principal que se ve en mobile (como 'Nombre' en tu imagen) */}
-                                    {client.razon_social}
+                                    {employee.first_name} {employee.last_name}
                                 </div>
-                                {expandedClient === client.id ? (
+                                {expandedEmployee === employee.id ? (
                                     <ChevronUp className="w-5 h-5 text-orange-500" />
                                 ) : (
                                     <ChevronDown className="w-5 h-5 text-gray-400" />
@@ -252,39 +235,40 @@ export const ListClient = () => {
                             </div>
 
                             {/* Contenido expansible */}
-                            {expandedClient === client.id && (
+                            {expandedEmployee === employee.id && (
                                 <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-gray-50">
                                     <div className="grid grid-cols-2 gap-y-2 text-sm">
                                         {/* Filas de la imagen, alineadas */}
-                                        <span className="font-medium text-gray-600">CUIT</span>
-                                        <span className="text-gray-800">{client.cuit}</span>
-
-                                        <span className="font-medium text-gray-600">Celular</span>
-                                        <span className="text-gray-800">{client.celular}</span>
-
-                                        <span className="font-medium text-gray-600">Email</span>
-                                        <span className="text-gray-800 truncate">{client.email}</span>
-
                                         <span className="font-medium text-gray-600">Nombre</span>
-                                        <span className="text-gray-800 truncate">{client.first_name}</span>
+                                        <span className="text-gray-800 truncate">{employee.first_name}</span>
 
                                         <span className="font-medium text-gray-600">Apellido</span>
-                                        <span className="text-gray-800 truncate">{client.last_name}</span>
+                                        <span className="text-gray-800 truncate">{employee.last_name}</span>
+
+                                        <span className="font-medium text-gray-600">CUIT</span>
+                                        <span className="text-gray-800">{employee.cuit}</span>
+
+                                        <span className="font-medium text-gray-600">Celular</span>
+                                        <span className="text-gray-800">{employee.celular}</span>
+
+                                        <span className="font-medium text-gray-600">Email</span>
+                                        <span className="text-gray-800 truncate">{employee.email}</span>
+
 
                                         <span className="font-medium text-gray-600">Estado</span>
-                                        <span><StatusBadge isActive={client.is_active} /></span>
+                                        <span><StatusBadge isActive={employee.is_active} /></span>
 
 
                                         {/* Acciones - Parte inferior de la lista */}
                                         <div className="col-span-2 pt-3 flex justify-end space-x-3 border-t mt-2 border-gray-200">
                                             <button
-                                                onClick={() => handleDelete(client.id)}
+                                                onClick={() => handleDelete(employee.id)}
                                                 className="p-2 text-red-600 hover:text-red-800 bg-red-100 rounded-lg transition-all"
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </button>
                                             <button
-                                                onClick={() => handleEdit(client)}
+                                                onClick={() => handleEdit(employee)}
                                                 className="p-2 text-blue-600 hover:text-blue-800 bg-blue-100 rounded-lg transition-all"
                                             >
                                                 <Edit className="w-5 h-5" />
@@ -307,7 +291,7 @@ export const ListClient = () => {
                         <ChevronLeft className="w-5 h-5" />
                     </button>
                     <div className="flex items-center px-3 text-sm text-gray-600">
-                        Mostrando {clients.length} de {totalCount}
+                        Mostrando {employees.length} de {totalCount}
                     </div>
                     <button
                         onClick={() => fetchPage(nextPage)}
@@ -320,14 +304,14 @@ export const ListClient = () => {
 
             </main>
 
-            {/* 3. Modal para Crear/Editar Cliente (UX mejorada) */}
+            {/* 3. Modal para Crear/Editar empleado (UX mejorada) */}
             {isModalOpen && (
                 <div className="fixed inset-0 backdrop-blur-xs bg-opacity-75 flex items-center justify-center p-4 z-50">
                     <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-2xl transform transition-all overflow-y-auto max-h-[90vh]">
                         {/* Encabezado del Modal */}
                         <div className="flex justify-between items-center pb-4 border-b border-gray-200 mb-4">
                             <h2 className="text-xl font-bold text-gray-800">
-                                {isEditing ? 'Editar Cliente' : 'Crear Nuevo Cliente'}
+                                {isEditing ? 'Editar Emmpleado' : 'Crear Nuevo Empleado'}
                             </h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-800 p-1 rounded-full hover:bg-gray-100 transition">
                                 <X className="w-6 h-6" />
@@ -337,23 +321,22 @@ export const ListClient = () => {
                         {/* Formulario del Modal */}
                         <form onSubmit={handleSave} className="space-y-4">
 
-                            <InputField label="Razón Social" name="razon_social" value={newClient.razon_social} setNewClient={setNewClient} disabled={loading} type="text" />
-                            <InputField label="CUIT" name="cuit" value={newClient.cuit} setNewClient={setNewClient} disabled={loading} type="text" />
-                            <InputField label="Nombre" name="first_name" value={newClient.first_name} setNewClient={setNewClient} disabled={loading} type="text" required={false} />
-                            <InputField label="Apellido" name="last_name" value={newClient.last_name} setNewClient={setNewClient} disabled={loading} type="text" required={false} />
-                            <InputField label="Celular" name="celular" value={newClient.celular} setNewClient={setNewClient} disabled={loading} type="text" />
-                            <InputField label="Usuario" name="username" value={newClient.username} setNewClient={setNewClient} disabled={loading} type="text" />
+                            <InputField label="Nombre" name="first_name" value={newEmployee.first_name} setNewClient={setNewEmployee} disabled={loading} type="text" required={false} />
+                            <InputField label="Apellido" name="last_name" value={newEmployee.last_name} setNewClient={setNewEmployee} disabled={loading} type="text" required={false} />
+                            <InputField label="CUIT" name="cuit" value={newEmployee.cuit} setNewClient={setNewEmployee} disabled={loading} type="text" />
+                            <InputField label="Usuario" name="username" value={newEmployee.username} setNewClient={setNewEmployee} disabled={loading} type="text" />
                             {!isEditing && (
-                                <InputField label="Contraseña" name="password" value={newClient.password} setNewClient={setNewClient} disabled={loading} type="password" />
+                                <InputField label="Contraseña" name="password" value={newEmployee.password} setNewClient={setNewEmployee} disabled={loading} type="password" />
                             )}
-                            <InputField label="Email" name="email" value={newClient.email} setNewClient={setNewClient} disabled={loading} type="email" />
+                            <InputField label="Email" name="email" value={newEmployee.email} setNewClient={setNewEmployee} disabled={loading} type="email" />
+                            <InputField label="Celular" name="celular" value={newEmployee.celular} setNewClient={setNewEmployee} disabled={loading} type="text" />
 
                             {/* Botón de Guardar */}
                             <button
                                 type="submit"
                                 disabled={loading}
                                 className={`w-full py-3 mt-6 rounded-xl text-white font-bold tracking-wider transition duration-300 ease-in-out flex items-center justify-center space-x-2
-                  ${loading
+                          ${loading
                                         ? 'bg-green-400 cursor-not-allowed'
                                         : 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300'
                                     }`}
@@ -375,33 +358,9 @@ export const ListClient = () => {
     )
 }
 
-// Componente auxiliar para campos de input
-export const InputField = ({ label, name, value, setNewClient, disabled, type = 'text', step, required = true }) => (
-    <div>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-            {label}
-        </label>
-        <input
-            type={type}
-            step={step}
-            id={name}
-            name={name}
-            value={value}
-            onChange={(e) => setNewClient(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value }))}
-            className="w-full mt-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-            disabled={disabled}
-            required={required}
-        />
-    </div>
-);
-
-
-// Iconos de paginación que faltan importar en el original
 const ChevronLeft = (props) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
 );
 const ChevronRight = (props) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
 );
-
-

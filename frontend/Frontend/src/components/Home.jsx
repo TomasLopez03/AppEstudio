@@ -1,10 +1,14 @@
 import logoEmpresa from '../assets/images/logoEmpresa.jpeg';
-import { Navbar } from './NavBar';
+import { Navbar } from './Navbar.jsx';
+import { useContext } from 'react';
+import { AuthContext } from '../auth/AuthContext.jsx';
 
 export const Home = () => {
+    const { user } = useContext(AuthContext);
+
     return (
         <>
-            <Navbar userRole={'admin'} />
+            <Navbar userRole={user?.role} />
             <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 sm:p-8">
                 <div className="w-full max-w-4xl text-center">
                     <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent  bg-clip-text bg-gradient-to-r from-orange-500 to-red-500 mb-8 tracking-tight">

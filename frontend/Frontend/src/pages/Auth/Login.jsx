@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../auth/AuthContext.jsx';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export const Login = () => {
     const { login } = useContext(AuthContext);
@@ -10,6 +10,7 @@ export const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
 
     const navigate = useNavigate();
@@ -88,19 +89,31 @@ export const Login = () => {
                         </label>
                         <div className="relative">
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 id="password"
                                 value={password}
                                 onChange={(e) => {
                                     setPassword(e.target.value);
                                     if (error) setError('');
                                 }}
-                                className={`w-full py-3 pl-10 pr-4 border rounded-xl transition duration-150 shadow-sm
+                                className={`w-full py-3 pl-10 pr-12 border rounded-xl transition duration-150 shadow-sm
                   focus:outline-none focus:ring-2 ${getErrorClass(password)}`}
                                 placeholder="********"
                                 disabled={loading}
                             />
                             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                disabled={loading}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-5 w-5" />
+                                ) : (
+                                    <Eye className="h-5 w-5" />
+                                )}
+                            </button>
                         </div>
                         {/* Mensaje de error de campo requerido para Contraseña */}
                         {submitted && !password && (
